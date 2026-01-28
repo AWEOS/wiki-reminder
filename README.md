@@ -2,6 +2,8 @@
 
 Ein automatisches Erinnerungssystem für Wiki-Aktualisierungen, das mit Outline Wiki integriert ist.
 
+**Repository:** [github.com/AWEOS/wiki-reminder](https://github.com/AWEOS/wiki-reminder)
+
 ## Features
 
 - **Automatische Erinnerungen**: Wöchentliche Überprüfung ob Teamleiter ihre Wiki-Dokumentation aktualisiert haben
@@ -26,7 +28,8 @@ Ein automatisches Erinnerungssystem für Wiki-Aktualisierungen, das mit Outline 
 ### 1. Repository klonen und Dependencies installieren
 
 ```bash
-cd background-routines
+git clone https://github.com/AWEOS/wiki-reminder.git
+cd wiki-reminder
 npm install
 ```
 
