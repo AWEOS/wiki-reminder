@@ -1,0 +1,92 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model TeamLeader {
+  id              Int              @id @default(autoincrement())
+  name            String
+  email           String           @unique
+  googleChatId    String?          @map("google_chat_id")
+  outlineUserId   String?          @map("outline_user_id")
+  active          Boolean          @default(true)
+  reminderCount   Int              @default(0) @map("reminder_count")
+  snoozeUntil     DateTime?        @map("snooze_until")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+  
+  collections     WikiCollection[]
+  reminderLogs    ReminderLog[]
+  responseTokens  ResponseToken[]
+
+  @@map("team_leaders")
+}
+
+model WikiCollection {
+  id                  Int        @id @default(autoincrement())
+  outlineCollectionId String     @map("outline_collection_id")
+  name                String
+  teamLeaderId        Int        @map("team_leader_id")
+  lastCheckedAt       DateTime?  @map("last_checked_at")
+  lastUpdatedAt       DateTime?  @map("last_updated_at")
+  createdAt           DateTime   @default(now()) @map("created_at")
+  
+  teamLeader          TeamLeader @relation(fields: [teamLeaderId], references: [id], onDelete: Cascade)
+
+  @@map("wiki_collections")
+}
+
+model ReminderLog {
+  id            Int       @id @default(autoincrement())
+  teamLeaderId  Int       @map("team_leader_id")
+  sentAt        DateTime  @default(now()) @map("sent_at")
+  reminderCount Int       @map("reminder_count")
+  status        String    @default("sent") // sent, responded, escalated
+  respondedAt   DateTime? @map("responded_at")
+  responseType  String?   @map("response_type") // updated, nothing_to_update, will_update
+  comment       String?   @db.Text
+  
+  teamLeader    TeamLeader @relation(fields: [teamLeaderId], references: [id], onDelete: Cascade)
+
+  @@map("reminder_logs")
+}
+
+model ResponseToken {
+  id            Int        @id @default(autoincrement())
+  token         String     @unique
+  teamLeaderId  Int        @map("team_leader_id")
+  reminderLogId Int?       @map("reminder_log_id")
+  used          Boolean    @default(false)
+  expiresAt     DateTime   @map("expires_at")
+  createdAt     DateTime   @default(now()) @map("created_at")
+  
+  teamLeader    TeamLeader @relation(fields: [teamLeaderId], references: [id], onDelete: Cascade)
+
+  @@map("response_tokens")
+}
+
+model Settings {
+  id            Int      @id @default(autoincrement())
+  key           String   @unique
+  value         String   @db.Text
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@map("settings")
+}
+
+model AuditLog {
+  id          Int      @id @default(autoincrement())
+  action      String   // team_leader_created, team_leader_updated, team_leader_deleted, reminder_sent, settings_updated, etc.
+  entityType  String   @map("entity_type") // team_leader, reminder, settings
+  entityId    String?  @map("entity_id")
+  details     String?  @db.Text // JSON or description
+  userId      String?  @map("user_id") // from session
+  userEmail   String?  @map("user_email")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("audit_logs")
+}
